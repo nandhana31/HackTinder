@@ -1,21 +1,15 @@
-import os
-import requests
+# agentuity_api.py (NEW FILE)
 
-def generate_tasks(team_name, members):
-    api_key = os.getenv("AGENTUITY_API_KEY")
-    url = "https://api.agentuity.com/createTasks"
+from typing import List, Dict
 
-    payload = {
-        "team_name": team_name,
-        "members": members,
-        "default_tasks": [
-            {"title": "Brainstorm idea", "assignee": members[0]},
-            {"title": "Frontend setup", "assignee": members[1]},
-            {"title": "Backend API setup", "assignee": members[2] if len(members) > 2 else members[0]}
+def generate_tasks(team_id: str, team_name: str, members: List[str]) -> Dict:
+    """MOCKED FUNCTION: Returns dummy tasks for database insertion test."""
+    assignee = members[0] if members else "Unassigned"
+    
+    return {
+        "tasks": [
+            {"title": "Front-End Setup", "assignee": assignee, "team_id": team_id, "status": "To-Do"},
+            {"title": "Review Gemini Match Logic", "assignee": assignee, "team_id": team_id, "status": "To-Do"},
+            {"title": "Initial Pitch Deck Outline", "assignee": assignee, "team_id": team_id, "status": "To-Do"}
         ]
     }
-
-    headers = {"Authorization": f"Bearer {api_key}"}
-    response = requests.post(url, json=payload, headers=headers)
-
-    return response.json() if response.status_code == 200 else {"error": "Agentuity API failed"}

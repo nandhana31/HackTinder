@@ -1,13 +1,21 @@
+# routes/match.py (FIXED)
+
 from fastapi import APIRouter
-from db_config import users_col
 from gemini_api import generate_match_score
+# Import the functions, NOT the collections
+from db_config import find_user_by_email, find_all_match_candidates 
 
 router = APIRouter()
 
 @router.get("/match/{email}")
 def find_best_matches(email: str):
-    user = users_col.find_one({"email": email}, {"_id": 0})
-    others = list(users_col.find({"email": {"$ne": email}}, {"_id": 0}))
+    # Use dedicated DB functions
+    user = find_user_by_email(email)
+    if not user:
+        return {"error": "User not found."}
+        
+    # Find candidates using the dedicated function
+    others = find_all_match_candidates(email)
     
     results = []
     for o in others:
