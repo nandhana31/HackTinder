@@ -1,20 +1,51 @@
 import os
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 def generate_match_score(user1, user2):
-    api_key = os.getenv("GEMINI_API_KEY")
-    prompt = f"Compare these two users and rate compatibility from 0–100:\nUser1: {user1}\nUser2: {user2}\nExplain the reason."
-
-    # Sample Gemini API call structure (replace URL with actual endpoint)
-    response = requests.post(
-        "https://api.gemini.com/v1/text", 
-        headers={"Authorization": f"Bearer {api_key}"},
-        json={"input": prompt}
+    prompt = (
+        f"Compare skills and interests of {user1} and {user2}. "
+        "Provide a match percentage and a brief explanation in JSON format. "
+        "Example: {'match_score': 87, 'reason': 'Both are skilled in Python and AI.'}\n\n"
+        f"Users:\nUser1: {user1}\nUser2: {user2}"
     )
 
-    data = response.json()
-    # Expected response parsing
-    return {
-        "match_score": 85,  # Replace with real parsed value
-        "reason": data.get("output", "Both users have similar skills.")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+    headers = {
+        "Content-Type": "application/json"
     }
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ]
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        
+        raw_output = response.json()['candidates'][0]['content']['parts'][0]['text']
+        
+        # Parse the JSON string from the response.
+        # This is a critical step and will require careful handling
+        # to ensure the output is always a valid JSON.
+        import json
+        match_data = json.loads(raw_output)
+        
+        return {
+            "match_score": match_data.get("match_score"),
+            "reason": match_data.get("reason")
+        }
+    except Exception as e:
+        print(f"Error calling Gemini API: {e}")
+        return {
+            "match_score": 0,
+            "reason": "An error occurred during matchmaking."
+        }
