@@ -1,13 +1,30 @@
+# routes/teams.py (FIXED)
+
 from fastapi import APIRouter
 from models import Team
 from backend.db_config import teams_col, tasks_col
 from agentuity_api import generate_tasks
+# Import the functions, NOT the collections
+from db_config import create_team, insert_tasks
 
 router = APIRouter()
 
 @router.post("/createTeam")
-def create_team(team: Team):
-    teams_col.insert_one(team.dict())
-    task_data = generate_tasks(team.name, team.members)
-    tasks_col.insert_many(task_data.get("tasks", []))
-    return {"message": "Team created and tasks assigned!", "tasks": task_data}
+def create_team_and_tasks(team: Team):
+    team_data = team.dict()
+    member_emails = team.members
+    
+    # Use dedicated function: creates team AND updates users
+    team_id = create_team(team_data, member_emails)
+    
+    # Generate tasks (mocked or real)
+    task_data = generate_tasks(team_id, team.name, team.members) 
+    
+    # Use dedicated function to insert tasks
+    inserted_ids = insert_tasks(task_data.get("tasks", []))
+    
+    return {
+        "message": "Team created and tasks assigned!", 
+        "team_id": team_id,
+        "tasks_inserted": len(inserted_ids)
+    }
