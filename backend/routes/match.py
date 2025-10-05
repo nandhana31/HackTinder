@@ -1,10 +1,11 @@
 # routes/match.py (CORRECTED)
 
 from fastapi import APIRouter
-from gemini_api import generate_match_score
-# Fix: Remove incorrect 'from backend.db_config import users_col'
-# Fix: Only import the functions required
-from db_config import find_user_by_email, find_all_match_candidates 
+
+from backend.db_config import users_col
+from ..gemini_api import generate_match_score
+# Import the functions, NOT the collections
+from ..db_config import find_user_by_email, find_all_match_candidates 
 
 router = APIRouter()
 
