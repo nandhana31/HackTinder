@@ -13,7 +13,7 @@ export const MatchingScreen: React.FC = () => {
     handleLike,
     handlePass,
     reset
-  } = useMatching(user?.id);
+  } = useMatching(user?.email);
 
   if (loading) {
     return (

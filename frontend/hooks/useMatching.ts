@@ -1,46 +1,69 @@
-import { useState, useEffect } from 'react';
-import { Match } from '../components/types';
-import { matchingService } from '../components/services/matchingService';
+import { useState, useEffect } from "react";
 
-export const useMatching = (userId?: string) => {
+interface Match {
+  id: string;
+  name: string;
+  matchScore: number;
+  avatar?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  skills?: string[];
+  interests?: string[];
+}
+
+export const useMatching = (email?: string) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (userId) {
-      loadMatches();
-    }
-  }, [userId]);
+    if (!email) return;
 
-  const loadMatches = async () => {
-    if (!userId) return;
-    setLoading(true);
-    const data = await matchingService.getMatches(userId);
-    setMatches(data);
-    setLoading(false);
+    const fetchMatches = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`http://127.0.0.1:8000/match/${email}`);
+        const data = await response.json();
+
+        if (data.matches) {
+          const formatted = data.matches.map((m: any, idx: number) => ({
+            id: `match-${idx}`,
+            name: m.partner,
+            matchScore: m.match_score,
+            avatar: "👩‍💻", // optional emoji
+            skills: ["React", "Node.js", "AWS"], // optional — or you can fetch real ones if backend sends them
+            interests: ["Web Development", "Cloud Computing"], // optional
+          }));
+          setMatches(formatted);
+        }
+      } catch (err) {
+        console.error("Error fetching matches:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, [email]);
+
+  const handleLike = (id: string) => {
+    setCurrentIndex((prev) => prev + 1);
   };
 
-  const handleLike = async (matchId: string) => {
-    if (!userId) return;
-    await matchingService.likeUser(userId, matchId);
-    setCurrentIndex(prev => prev + 1);
+  const handlePass = (id: string) => {
+    setCurrentIndex((prev) => prev + 1);
   };
 
-  const handlePass = async (matchId: string) => {
-    if (!userId) return;
-    await matchingService.passUser(userId, matchId);
-    setCurrentIndex(prev => prev + 1);
+  const reset = () => {
+    setCurrentIndex(0);
   };
 
   return {
-    matches,
     currentMatch: matches[currentIndex],
-    currentIndex,
-    hasMoreMatches: currentIndex < matches.length,
     loading,
+    hasMoreMatches: currentIndex < matches.length,
     handleLike,
     handlePass,
-    reset: () => setCurrentIndex(0)
+    reset,
   };
 };

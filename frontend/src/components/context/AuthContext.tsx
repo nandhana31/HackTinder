@@ -1,12 +1,15 @@
 // frontend/src/components/context/AuthContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { userService, UserProfile } from './frontend/src/services/userService';
+import { userService, UserProfile } from '../services/userService';
 
 interface AuthContextType {
   user: Partial<UserProfile> | null;
   updateProfile: (data: Partial<UserProfile>) => void;
   registerUser: () => Promise<void>;
   isRegistered: boolean;
+  isAuthenticated: boolean;
+  login: () => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,8 +17,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<Partial<UserProfile> | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const login = () => {
+    console.log('Login function called');
+    setIsAuthenticated(true);
+  };
+
+  const logout = () => {
+    console.log('Logout function called');
+    setIsAuthenticated(false);
+    setUser(null);
+    setIsRegistered(false);
+  };
 
   const updateProfile = (data: Partial<UserProfile>) => {
+    console.log('Updating profile:', data);
     setUser(prev => ({ ...prev, ...data }));
   };
 
@@ -25,6 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
+      console.log('Registering user:', user);
       const response = await userService.registerUser({
         name: user.name,
         email: user.email,
@@ -33,7 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         idea: user.idea,
       });
       
-      console.log('User registered:', response);
+      console.log('User registered successfully:', response);
       setIsRegistered(true);
     } catch (error) {
       console.error('Failed to register user:', error);
@@ -41,8 +59,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const value = {
+    user,
+    updateProfile,
+    registerUser,
+    isRegistered,
+    isAuthenticated,
+    login,
+    logout,
+  };
+
   return (
-    <AuthContext.Provider value={{ user, updateProfile, registerUser, isRegistered }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
