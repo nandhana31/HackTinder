@@ -1,3 +1,4 @@
+// frontend/src/components/onboarding/InterestsSelection.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
@@ -6,8 +7,10 @@ import { INTERESTS } from '../../utils/constants';
 
 export const InterestsSelection: React.FC = () => {
   const navigate = useNavigate();
-  const { updateProfile } = useAuth();
+  const { updateProfile, registerUser } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests(prev =>
@@ -15,9 +18,25 @@ export const InterestsSelection: React.FC = () => {
     );
   };
 
-  const handleContinue = () => {
-    updateProfile({ interests: selectedInterests });
-    navigate('/matching');
+  const handleContinue = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Update profile with interests
+      updateProfile({ interests: selectedInterests });
+      
+      // Register user with backend
+      await registerUser();
+      
+      // Navigate to matching page
+      navigate('/matching');
+    } catch (err) {
+      setError('Failed to save profile. Please try again.');
+      console.error('Registration error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,6 +54,7 @@ export const InterestsSelection: React.FC = () => {
                 key={interest}
                 onClick={() => toggleInterest(interest)}
                 className={`tag ${selectedInterests.includes(interest) ? 'tag-selected-blue' : 'tag-default'}`}
+                disabled={isLoading}
               >
                 {interest}
                 {selectedInterests.includes(interest) && (
@@ -44,6 +64,12 @@ export const InterestsSelection: React.FC = () => {
             ))}
           </div>
 
+          {error && (
+            <p style={{ color: '#ef4444', marginTop: '1rem', fontSize: '0.875rem' }}>
+              {error}
+            </p>
+          )}
+
           <div style={{ paddingTop: '1rem' }}>
             <p className="selection-info">
               Selected: {selectedInterests.length} interests
@@ -51,9 +77,9 @@ export const InterestsSelection: React.FC = () => {
             <button 
               onClick={handleContinue} 
               className="button button-primary"
-              disabled={selectedInterests.length === 0}
+              disabled={selectedInterests.length === 0 || isLoading}
             >
-              Find My Matches
+              {isLoading ? 'Saving Profile...' : 'Find My Matches'}
             </button>
           </div>
         </div>

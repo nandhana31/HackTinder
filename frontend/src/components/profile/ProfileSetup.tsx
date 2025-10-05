@@ -1,111 +1,100 @@
+// frontend/src/components/profile/ProfileSetup.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Github, Linkedin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { profileService } from '../services/profileService';
 
 export const ProfileSetup: React.FC = () => {
   const navigate = useNavigate();
   const { updateProfile } = useAuth();
+  
   const [formData, setFormData] = useState({
     name: '',
-    github: '',
-    linkedin: ''
+    email: '',
+    idea: '',
   });
-  const [resume, setResume] = useState<File | null>(null);
 
-  const handleSubmit = async () => {
-    let resumeUrl = '';
-    if (resume) {
-      resumeUrl = await profileService.uploadResume(resume);
-    }
-
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Save basic profile info to context
     updateProfile({
       name: formData.name,
-      githubUrl: formData.github,
-      linkedinUrl: formData.linkedin,
-      resumeUrl
+      email: formData.email,
+      idea: formData.idea,
     });
-
+    
+    // Navigate to skills selection
     navigate('/skills');
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-content">
+    <div className="selection-container">
+      <div className="selection-content">
         <div className="card">
           <div className="card-header">
-            <h2 className="card-title">Complete Your Profile</h2>
-            <p className="card-description">Tell us about yourself to find the best matches</p>
+            <h2 className="card-title">Create Your Profile</h2>
+            <p className="card-description">Let's get to know you better</p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                Name *
+              </label>
               <input
                 type="text"
+                required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="form-input"
-                placeholder="John Doe"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.375rem',
+                }}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
-                <Upload size={16} style={{ display: 'inline', marginRight: '0.5rem' }} />
-                Upload Resume
-              </label>
-              <div className="upload-area">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => setResume(e.target.files?.[0] || null)}
-                  style={{ display: 'none' }}
-                  id="resume-upload"
-                />
-                <label htmlFor="resume-upload" style={{ cursor: 'pointer', display: 'block' }}>
-                  <Upload size={32} className="upload-icon" />
-                  <p className="upload-text">
-                    {resume ? resume.name : 'Click to upload or drag and drop'}
-                  </p>
-                  <p className="upload-subtext">PDF, DOC up to 10MB</p>
-                </label>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                <Github size={16} style={{ display: 'inline', marginRight: '0.5rem' }} />
-                GitHub Profile
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                Email *
               </label>
               <input
-                type="url"
-                value={formData.github}
-                onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                className="form-input"
-                placeholder="https://github.com/username"
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.375rem',
+                }}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
-                <Linkedin size={16} style={{ display: 'inline', marginRight: '0.5rem' }} />
-                LinkedIn Profile
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                Project Idea (Optional)
               </label>
-              <input
-                type="url"
-                value={formData.linkedin}
-                onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                className="form-input"
-                placeholder="https://linkedin.com/in/username"
+              <textarea
+                value={formData.idea}
+                onChange={(e) => setFormData({ ...formData, idea: e.target.value })}
+                rows={4}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.375rem',
+                }}
+                placeholder="Describe your hackathon project idea..."
               />
             </div>
-          </div>
 
-          <button onClick={handleSubmit} className="button button-primary">
-            Continue
-          </button>
+            <button type="submit" className="button button-primary">
+              Continue to Skills
+            </button>
+          </form>
         </div>
       </div>
     </div>
