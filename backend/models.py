@@ -1,3 +1,5 @@
+# backend/models.py
+
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -16,3 +18,10 @@ class Task(BaseModel):
     title: str
     assignee: str
     status: Optional[str] = "To-Do"
+
+class ProfileUpdate(BaseModel):
+    # Used for PUT /profile/update
+    email: str
+    github_link: Optional[str] = None
+    linkedin_link: Optional[str] = None
+    extracted_text: Optional[str] = None
