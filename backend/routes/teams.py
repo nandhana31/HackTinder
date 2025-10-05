@@ -1,11 +1,10 @@
 # routes/teams.py (FIXED)
 
 from fastapi import APIRouter
-from models import Team
-from backend.db_config import teams_col, tasks_col
-from agentuity_api import generate_tasks
+from ..models import Team
+from ..agentuity_api import generate_tasks
 # Import the functions, NOT the collections
-from db_config import create_team, insert_tasks
+from ..db_config import create_team, insert_tasks
 
 router = APIRouter()
 

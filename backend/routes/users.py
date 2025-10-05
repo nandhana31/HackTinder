@@ -1,10 +1,9 @@
 # routes/users.py (FIXED)
 
 from fastapi import APIRouter
-from models import User
+from ..models import User 
 # Import the functions, NOT the collections
-from db_config import insert_user, find_all_users
-from backend.db_config import users_col
+from ..db_config import insert_user, find_all_users
 
 router = APIRouter()
 
