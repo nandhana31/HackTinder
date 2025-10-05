@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import users, match, teams 
+from .routes import users, match, teams
 
 app = FastAPI(title="HackMateAI Backend")
 
@@ -9,4 +9,4 @@ app.include_router(teams.router)
 
 @app.get("/")
 def root():
-    return {"message": "HackMateAI Backend Running 🚀"}
+    return {"message": "HackMateAI Backend Running"}
