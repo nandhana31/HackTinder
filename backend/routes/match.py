@@ -1,28 +1,35 @@
-# routes/match.py (CORRECTED)
+# routes/match.py (FINAL, CLEANED VERSION)
 
 from fastapi import APIRouter
-
-from backend.db_config import users_col
-from ..gemini_api import generate_match_score
-# Import the functions, NOT the collections
-from ..db_config import find_user_by_email, find_all_match_candidates 
+# Fix: Direct imports for AI and DB functions
+from gemini_api import generate_match_score 
+from db_config import find_user_by_email, find_all_match_candidates 
 
 router = APIRouter()
 
 @router.get("/match/{email}")
 def find_best_matches(email: str):
-    # Use dedicated DB functions
+    """
+    Finds the best potential teammates for the user based on skills and rich profile data.
+    """
+    # 1. Get the current user's full, rich profile data
     user = find_user_by_email(email)
     if not user:
         return {"error": "User not found."}
         
-    # Find candidates using the dedicated function
+    # 2. Find all eligible users (not already teamed)
     others = find_all_match_candidates(email)
     
     results = []
     for o in others:
+        # 3. Pass full user documents to Gemini logic for complex scoring
         match = generate_match_score(user, o)
-        results.append({"partner": o["name"], **match})
+        results.append({
+            "partner": o.get("name", "Unknown"), 
+            "partner_email": o.get("email", ""),
+            **match
+        })
     
+    # 4. Sort and return the top 3 matches
     sorted_results = sorted(results, key=lambda x: x["match_score"], reverse=True)
     return {"matches": sorted_results[:3]}
