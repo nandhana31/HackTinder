@@ -3,9 +3,9 @@
 from fastapi import APIRouter, File, UploadFile, Form 
 from typing import Optional
 
-from models import User, ProfileUpdate 
-from db_config import insert_user, find_all_users, update_user_profile_data 
-from gemini_api import analyze_and_extract_skills 
+from backend.models import User, ProfileUpdate 
+from backend.db_config import insert_user, find_all_users, update_user_profile_data 
+from backend.gemini_api import analyze_and_extract_skills 
 
 
 router = APIRouter()
@@ -28,9 +28,9 @@ def get_all_users():
 @router.put("/profile/update")
 def update_user_profile(
     email: str = Form(...),
-    github_link: Optional[str] = Form(None),
-    linkedin_link: Optional[str] = Form(None),
-    resume_file: Optional[UploadFile] = File(None)
+    github_link: str | None = Form(None),
+    linkedin_link: str | None = Form(None),
+    resume_file: UploadFile | None = File(None)
 ):
     """
     Accepts resume file and links, triggers AI analysis (MOCK), 

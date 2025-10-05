@@ -1,11 +1,12 @@
-# routes/teams.py (FINAL, CLEANED VERSION)
+# routes/teams.py
 
-from fastapi import APIRouter
-from models import Team # Direct import
-from agentuity_api import generate_tasks # Direct import of Agentuity logic
-from db_config import create_team, insert_tasks # Direct import of DB transactional functions
+from fastapi import APIRouter, HTTPException
+from backend.models import Team
+from backend.agentuity_api import generate_tasks
+from backend.db_config import create_team, insert_tasks, users_col
 
 router = APIRouter()
+
 
 def auto_generate_tasks(team_name: str, members_data: list):
     """Generate tasks for each team member based on their skills."""
@@ -55,45 +56,40 @@ def create_team_and_tasks(team: Team):
     """Creates a team, updates user documents, and triggers task generation."""
     team_data = team.dict()
     member_emails = team.members
-    
-    # 1. Use dedicated function: creates team document AND updates user documents
-    team_id = create_team(team_data, member_emails)
-    
-    # 2. Generate tasks (calls Agentuity logic)
-    # NOTE: You would fetch member skills here for optimal assignment
-    task_data = generate_tasks(team_data["name"], team.members) 
-    
-    # 3. Add team_id to tasks and save them locally
-    for task in task_data.get("tasks", []):
-        task["team_id"] = team_id
-
-    inserted_ids = insert_tasks(task_data.get("tasks", []))
-    
 
     # 1️⃣ Fetch full user info
     members_data = list(users_col.find({"email": {"$in": member_emails}}, {"_id": 0}))
     if not members_data:
         raise HTTPException(status_code=400, detail="No user data found for the provided emails.")
 
-    # 2️⃣ Create team in DB
+    # 2️⃣ Create team in DB (this also updates user documents with team_id)
     team_id = create_team(team_data, member_emails)
 
-    # 3️⃣ Generate tasks automatically
+    # 3️⃣ Generate tasks automatically based on member skills
     tasks = auto_generate_tasks(team_data["name"], members_data)
 
-    # 4️⃣ Add team_id to tasks and insert
+    # 4️⃣ Add team_id to tasks and insert into DB
     for t in tasks:
         t["team_id"] = team_id
 
     inserted_ids = insert_tasks(tasks)
 
-    # 5️⃣ Return summary
+    # 5️⃣ Optionally trigger Agentuity (best-effort; don't fail the route if it errors)
+    agentuity_status = None
+    try:
+        task_data = generate_tasks(team_data["name"], team.members)
+        agentuity_status = task_data.get("agentuity_status", "Triggered") if isinstance(task_data, dict) else "Triggered"
+    except Exception:
+        agentuity_status = "Agentuity call failed or not configured"
+
+    # Build task distribution per member for the response
+    task_distribution = {m.get("name", m.get("email")): [t["task"] for t in tasks if t.get("email") == m.get("email")] for m in members_data}
+
     return {
         "message": "✅ Team created and tasks auto-assigned based on skills!",
         "team_id": team_id,
         "tasks_inserted": len(inserted_ids),
-        "agentuity_status": task_data.get("agentuity_status", "Success (Mock/Webook Triggered)")
-    }
-        "total_tasks": len(inserted_ids),
-        "task_distribution": {m["name"]: [t["task"] for t in tasks if t["email"] == m["email"]] for m in members_data}
+        "total_tasks": len(tasks),
+        "task_distribution": task_distribution,
+        "agentuity_status": agentuity_status,
     }

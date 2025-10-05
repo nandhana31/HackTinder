@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter
 # Fix: Direct imports for AI and DB functions
-from gemini_api import generate_match_score 
-from db_config import find_user_by_email, find_all_match_candidates 
+from backend.gemini_api import generate_match_score 
+from backend.db_config import find_user_by_email, find_all_match_candidates 
 
 router = APIRouter()
 
