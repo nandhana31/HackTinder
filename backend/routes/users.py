@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from models import User
-from db_config import users_col
+from backend.db_config import users_col
 
 router = APIRouter()
 
