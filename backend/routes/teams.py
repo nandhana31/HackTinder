@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from models import Team
-from db_config import teams_col, tasks_col
+from backend.db_config import teams_col, tasks_col
 from agentuity_api import generate_tasks
 
 router = APIRouter()

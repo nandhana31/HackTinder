@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from db_config import users_col
+from backend.db_config import users_col
 from gemini_api import generate_match_score
 
 router = APIRouter()
