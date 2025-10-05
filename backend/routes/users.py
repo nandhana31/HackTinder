@@ -1,10 +1,9 @@
-# routes/users.py (FIXED)
+# routes/users.py (CORRECTED)
 
 from fastapi import APIRouter
 from models import User
-# Import the functions, NOT the collections
+# Fix: Remove incorrect 'from backend.db_config import users_col'
 from db_config import insert_user, find_all_users
-from backend.db_config import users_col
 
 router = APIRouter()
 
