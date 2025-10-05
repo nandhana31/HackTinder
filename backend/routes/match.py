@@ -1,6 +1,8 @@
 # routes/match.py (FIXED)
 
 from fastapi import APIRouter
+
+from backend.db_config import users_col
 from gemini_api import generate_match_score
 # Import the functions, NOT the collections
 from db_config import find_user_by_email, find_all_match_candidates 
