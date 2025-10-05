@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routes import users, match, teams
+from routes import users, match, teams 
 
 app = FastAPI(title="HackMateAI Backend")
 
